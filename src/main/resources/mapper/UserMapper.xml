@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.glf.mapper.UserMapper">
+    <!--resultMap-->
+    <resultMap id="baseResultMap" type="com.glf.domain.User">
+        <result column="id" property="id" jdbcType="DECIMAL"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="age" property="age" jdbcType="DECIMAL"/>
+        <result column="sex" property="sex" jdbcType="VARCHAR"/>
+        <!--一对多-->
+        <collection property="roleList" ofType="com.glf.domain.Role">
+            <id property="id" column="user_id"/>
+            <result column="id" property="id" jdbcType="DECIMAL"/>
+            <result column="name" property="name" jdbcType="VARCHAR"/>
+            <result column="user_id" property="userId" jdbcType="DECIMAL"/>
+            <result column="code" property="code" jdbcType="VARCHAR"/>
+            <result column="description" property="description" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+    
+    <!--通用sql-->
+    <sql id="baseColumns"> id,name,age,sex</sql>
+    <!--设置主键返回-->
+    <insert id="create" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            user(name,age,sex)
+            values (#{name},#{age},#{sex})
+    </insert>
+
+    <update id="update" parameterType="com.glf.domain.User">
+      update
+        user u
+      <set>
+        <if test="name != null and name != ''">
+          u.name = #{name},
+        </if>
+          <if test="age != null ">
+              u.age = #{age},
+          </if>
+          <if test="sex != null and sex != ''">
+              u.sex = #{sex}
+          </if>
+      </set>
+      where u.id = #{id}
+
+    </update>
+    <delete id="delete">
+      delete from user  where id = #{id}
+
+    </delete>
+
+
+    <select id="listUsers" resultType="com.glf.domain.User">
+        select
+          <include refid="baseColumns"/>
+        from user u
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                and u.name like #{nameLike}
+            </if>
+            <if test="age != null">
+                and u.age = #{age}
+            </if>
+            <if test="sex != null and sex != ''">
+                and u.sex = #{sex}
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="detail" resultType="com.glf.domain.User">
+      select
+        <include refid="baseColumns"/>
+      from user u
+      where u.id = #{id}
+
+    </select>
+    <select id="queryUserRoles" resultMap="baseResultMap">
+        select
+        u.id,
+        u.name,
+        u.age,
+        u.sex,
+        r.id,
+        r.name,
+        r.code,
+        r.description
+        from user u
+        left join role r on u.id = r.user_id
+        where u.id = #{id}
+        
+    </select>
+    <select id="findUserBySex" resultType="com.glf.domain.User">
+        select *
+        from user u
+        where u.sex in
+        <foreach item="sex" index="index" collection="sexList" open="(" separator="," close=")">
+            #{sex}
+        </foreach>
+
+    </select>
+</mapper>

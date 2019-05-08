@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.glf.mapper.RoleMapper">
+
+
+    <insert id="create">
+        insert into
+          role(name,user_id,code,description)
+        values (#{name},#{userId},#{code},#{description})
+    </insert>
+    <select id="findRoles" resultType="com.glf.domain.Role">
+      select *
+      from role r
+      <where>
+          <choose>
+              <when test="code !=null and code !=''">
+              <bind name="codeLike" value="'%'+code+'%'"/>
+                  and r.code like #{codeLike}
+              </when>
+              <when test="name !=null and name !=''">
+                  <bind name="nameLike" value="'%'+name+'%'"/>
+                  and r.name like #{nameLike}
+              </when>
+              <otherwise>
+                  and r.description is not null
+              </otherwise>
+          </choose>
+      </where>
+
+    </select>
+</mapper>
